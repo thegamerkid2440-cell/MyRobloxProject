@@ -3,8 +3,30 @@
   "tree": {
     "$className": "DataModel",
 
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/ReplicatedStorage/Shared"
+      },
+      "Remotes": {
+        "$className": "Folder"
+      }
+    },
+
     "ServerScriptService": {
       "$path": "src/ServerScriptService"
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "src/StarterPlayer/StarterPlayerScripts"
+      }
+    },
+
+    "StarterGui": {
+      "MainGui": {
+        "$className": "ScreenGui",
+        "$path": "src/StarterGui/MainGui"
+      }
     }
   }
 }
