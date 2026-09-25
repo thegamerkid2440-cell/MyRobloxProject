@@ -13,12 +13,24 @@
     },
 
     "ServerScriptService": {
-      "$path": "src/ServerScriptService"
+      "CombinedScript": {
+        "$className": "Script",
+        "$path": "CombinedScript.lua"
+      },
+      "OriginalServerScripts": {
+        "$path": "src/ServerScriptService"
+      }
     },
 
     "StarterPlayer": {
       "StarterPlayerScripts": {
-        "$path": "src/StarterPlayer/StarterPlayerScripts"
+        "CombinedScript": {
+          "$className": "LocalScript",
+          "$path": "CombinedScript.lua"
+        },
+        "OriginalClientScripts": {
+          "$path": "src/StarterPlayer/StarterPlayerScripts"
+        }
       }
     },
 
