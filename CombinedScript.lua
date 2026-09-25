@@ -1,14 +1,12 @@
 -- CombinedScript.lua
 -- Self-contained server/client Roblox Luau script.
 --
--- This file combines the original server startup, shared MathUtil behavior,
--- client startup, GUI behavior, and the tall-avatar menu. It is designed to be
--- used as a Script on the server and as a LocalScript on the client. Roblox
--- still requires those separate execution contexts; this file detects which
--- context it is running in and executes the appropriate section.
+-- This single file contains the original shared/server/client behavior and the
+-- complete tall-avatar menu. Roblox still requires server and client execution
+-- contexts, so use this same source as a Script in ServerScriptService and as a
+-- LocalScript in a client container such as StarterPlayerScripts.
 --
--- This uses only normal Roblox Studio APIs. It does not use exploit APIs,
--- loadstring, or external code execution.
+-- Normal Roblox Studio APIs only: no exploit APIs, loadstring, or external code.
 
 local RunService = game:GetService("RunService")
 
@@ -55,23 +53,23 @@ if RunService:IsServer() then
 		tallAvatarRemote.Parent = remotesFolder
 	end
 
-	local function applyTallAvatar(player: Player, character: Model?)
+	local function applyTallAvatar(player: Player, character: Model?): boolean
 		local targetCharacter = character or player.Character
 		if not targetCharacter then
-			return
+			return false
 		end
 
 		local humanoid = targetCharacter:FindFirstChildOfClass("Humanoid")
 		if not humanoid or humanoid.RigType ~= Enum.HumanoidRigType.R15 then
-			return
+			return false
 		end
 
-		-- Preserve the player's existing avatar and change only R15 proportions.
+		-- Keep the player's clothing/accessories and change only R15 proportions.
 		local success, description = pcall(function()
 			return humanoid:GetAppliedDescription()
 		end)
 		if not success or not description then
-			return
+			return false
 		end
 
 		description.BodyHeightScale = 1.35
@@ -79,20 +77,31 @@ if RunService:IsServer() then
 		description.BodyDepthScale = 0.65
 		description.HeadScale = 0.9
 
-		pcall(function()
+		local applied = pcall(function()
 			humanoid:ApplyDescription(description)
+		end)
+		return applied
+	end
+
+	local function applyTallAvatarAfterSpawn(player: Player, character: Model)
+		task.defer(function()
+			local humanoid = character:WaitForChild("Humanoid", 10)
+			if not humanoid then
+				return
+			end
+
+			-- Character appearance can finish loading after Humanoid exists.
+			task.wait(0.25)
+			if player:GetAttribute(TALL_AVATAR_ATTRIBUTE) == true then
+				applyTallAvatar(player, character)
+			end
 		end)
 	end
 
 	local function watchPlayer(player: Player)
 		player.CharacterAdded:Connect(function(character)
 			if player:GetAttribute(TALL_AVATAR_ATTRIBUTE) == true then
-				-- Wait briefly for the character's HumanoidDescription to be ready.
-				task.defer(function()
-					character:WaitForChild("Humanoid", 10)
-					task.wait(0.25)
-					applyTallAvatar(player, character)
-				end)
+				applyTallAvatarAfterSpawn(player, character)
 			end
 		end)
 	end
@@ -103,7 +112,8 @@ if RunService:IsServer() then
 	end
 
 	tallAvatarRemote.OnServerEvent:Connect(function(player: Player)
-		-- The server owns the change; the client only requests it.
+		-- The server validates and applies the request; the client cannot directly
+		-- change its character proportions or any server-owned game state.
 		player:SetAttribute(TALL_AVATAR_ATTRIBUTE, true)
 		applyTallAvatar(player)
 	end)
@@ -113,7 +123,7 @@ if RunService:IsServer() then
 end
 
 --==================================================
--- Client section
+-- Client section: menu, buttons, and dragging
 --==================================================
 
 if RunService:IsClient() then
@@ -130,12 +140,10 @@ if RunService:IsClient() then
 
 	print("Client started for", player.Name)
 
-	-- Avoid making duplicate menus if the same file is accidentally placed in
-	-- more than one client container during development.
 	local playerGui = player:WaitForChild("PlayerGui")
-	local existingGui = playerGui:FindFirstChild("CombinedTallAvatarGui")
-	if existingGui then
-		existingGui:Destroy()
+	local oldGui = playerGui:FindFirstChild("CombinedTallAvatarGui")
+	if oldGui then
+		oldGui:Destroy()
 	end
 
 	local screenGui = Instance.new("ScreenGui")
@@ -259,7 +267,6 @@ if RunService:IsClient() then
 				dragging = true
 				dragStart = input.Position
 				startPosition = target.Position
-				dragInput = input
 				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
@@ -298,7 +305,7 @@ if RunService:IsClient() then
 	tallButton.Activated:Connect(function()
 		tallButton.Text = "Changing Avatar..."
 		tallButton.AutoButtonColor = false
-		tallAvatarRemote:FireServer()
+	tallAvatarRemote:FireServer()
 		task.delay(1, function()
 			if tallButton.Parent then
 				tallButton.Text = "Change Avatar to Tall Avatar"
