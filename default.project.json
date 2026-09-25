@@ -16,9 +16,6 @@
       "CombinedScript": {
         "$className": "Script",
         "$path": "CombinedScript.lua"
-      },
-      "OriginalServerScripts": {
-        "$path": "src/ServerScriptService"
       }
     },
 
@@ -27,17 +24,7 @@
         "CombinedScript": {
           "$className": "LocalScript",
           "$path": "CombinedScript.lua"
-        },
-        "OriginalClientScripts": {
-          "$path": "src/StarterPlayer/StarterPlayerScripts"
         }
-      }
-    },
-
-    "StarterGui": {
-      "MainGui": {
-        "$className": "ScreenGui",
-        "$path": "src/StarterGui/MainGui"
       }
     }
   }
