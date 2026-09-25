@@ -13,17 +13,17 @@
     },
 
     "ServerScriptService": {
-      "CombinedScript": {
+      "CombinedServer": {
         "$className": "Script",
-        "$path": "CombinedScript.lua"
+        "$path": "src/ServerScriptService/CombinedServer.server.luau"
       }
     },
 
     "StarterPlayer": {
       "StarterPlayerScripts": {
-        "CombinedScript": {
+        "CombinedClient": {
           "$className": "LocalScript",
-          "$path": "CombinedScript.lua"
+          "$path": "src/StarterPlayer/StarterPlayerScripts/CombinedClient.client.luau"
         }
       }
     }
